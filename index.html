@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>丝路遗韵 · 河西走廊文化交互地图</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  /* ===== VARIABLES ===== */
+  :root {
+    --gold: #D4A84B;
+    --gold-light: #F0C866;
+    --gold-pale: #FFF3C4;
+    --gold-dark: #B8892A;
+    --dark: #0D0A04;
+    --dark2: #1A1406;
+    --dark3: #261E0A;
+    --card: rgba(26,20,6,0.92);
+    --sand: #9B8240;
+    --sand-muted: #6B5A30;
+    --text-light: #EDD98A;
+    --text-muted: #9B8240;
+    --text-dim: #5A4A25;
+    --red: #C0392B;
+    --red-light: #E74C3C;
+    --teal: #1ABC9C;
+    --teal-light: #2ECC71;
+    --border: rgba(212,168,75,0.15);
+    --border-strong: rgba(212,168,75,0.35);
+    --glow-gold: rgba(212,168,75,0.4);
+    --pattern-color: rgba(212,168,75,0.06);
+  }
+
+  /* ===== BASE ===== */
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    background: var(--dark);
+    color: var(--text-light);
+    font-family:'Noto Serif SC','STSong',serif;
+    overflow-x:hidden;
+    line-height:1.6;
+  }
+  ::selection { background:rgba(212,168,75,0.3); color:#fff; }
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:var(--dark); }
+  ::-webkit-scrollbar-thumb { background:var(--sand); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--gold); }
+
+  /* ===== PATTERN BACKGROUND ===== */
+  .pattern-bg {
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M30,30 Q45,15 60,30 Q75,15 90,30 Q105,45 90,60 Q105,75 90,90 Q75,105 60,90 Q45,105 30,90 Q15,75 30,60 Q15,45 30,30Z' fill='none' stroke='%23D4A84B' stroke-width='0.5' opacity='0.035'/%3E%3Cpath d='M20,60 Q30,40 40,60 Q50,40 60,60 Q70,40 80,60 Q90,40 100,60' fill='none' stroke='%23D4A84B' stroke-width='0.4' opacity='0.025'/%3E%3C/svg%3E");
+    background-size: 120px 120px;
+  }
+
+  /* ===== PARTICLES ===== */
+  #particles {
+    position:fixed; inset:0; pointer-events:none; z-index:1;
+  }
+
+  /* ===== NAV ===== */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    padding:14px 40px;
+    display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(180deg, rgba(13,10,4,0.92) 0%, transparent 100%);
+    backdrop-filter:blur(12px);
+    transition:all 0.3s;
+    border-bottom:1px solid transparent;
+  }
+  nav.scrolled {
+    background:rgba(13,10,4,0.96);
+    border-bottom-color:var(--border);
+    padding:10px 40px;
+  }
+  .nav-logo { font-size:16px; font-weight:900; color:var(--gold-light); letter-spacing:4px; }
+  .nav-logo span { color:var(--text-muted); font-weight:400; font-size:12px; margin-left:8px; }
+  .nav-links { display:flex; gap:32px; list-style:none; }
+  .nav-links a { font-size:13px; color:var(--text-muted); text-decoration:none; letter-spacing:1px; transition:color 0.3s; position:relative; }
+  .nav-links a::after { content:''; position:absolute; bottom:-4px; left:0; width:0; height:1px; background:var(--gold); transition:width 0.3s; }
+  .nav-links a:hover { color:var(--gold-light); }
+  .nav-links a:hover::after { width:100%; }
+  .nav-theme { width:36px; height:36px; border:1px solid var(--border); border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:16px; transition:all 0.3s; }
+  .nav-theme:hover { background:rgba(212,168,75,0.1); border-color:var(--gold); }
+
+  /* ===== HERO ===== */
+  #hero {
+    position:relative; height:100vh; min-height:700px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    overflow:hidden; z-index:2;
+  }
+  .hero-bg-img {
+    position:absolute; inset:0; z-index:0;
+    background:url('images/Dunhuang_Silk_Road_panoramic_s_2026-05-18T09-14-24.png') center/cover no-repeat;
+    filter:brightness(0.55) saturate(1.1);
+  }
+  .hero-overlay {
+    position:absolute; inset:0; z-index:1;
+    background:linear-gradient(180deg, rgba(13,10,4,0.6) 0%, rgba(13,10,4,0.3) 40%, rgba(13,10,4,0.7) 80%, var(--dark) 100%);
+  }
+
+  /* Camel silhouette animation */
+  .camel-caravan {
+    position:absolute; bottom:15%; left:-300px; z-index:2;
+    display:flex; gap:30px; align-items:flex-end;
+    animation:caravanMove 25s linear infinite;
+    opacity:0.35;
+    filter:drop-shadow(0 0 8px rgba(212,168,75,0.3));
+  }
+  .camel {
+    width:70px; height:45px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 50'%3E%3Cpath d='M15,35 Q10,30 12,25 Q15,20 20,22 L25,15 Q28,10 32,12 L38,18 Q42,15 46,18 L48,10 Q50,5 53,8 L55,18 Q60,15 65,18 Q70,20 68,28 Q65,35 60,38 Q55,40 50,38 Q45,42 40,40 Q35,42 30,38 Q25,42 20,38 Z' fill='%23D4A84B' opacity='0.6'/%3E%3C/svg%3E") no-repeat center/contain;
+    animation:camelWalk 0.8s ease-in-out infinite alternate;
+  }
+  .camel:nth-child(2) { animation-delay:0.2s; transform:scale(0.85); }
+  .camel:nth-child(3) { animation-delay:0.4s; transform:scale(0.7); opacity:0.5; }
+
+  @keyframes caravanMove {
+    from { left:-300px; }
+    to { left:110%; }
+  }
+  @keyframes camelWalk {
+    from { transform:translateY(0); }
+    to { transform:translateY(-3px); }
+  }
+
+  /* Hero content */
+  .hero-content { position:relative; z-index:3; text-align:center; }
+
+  .hero-tag {
+    display:inline-block; font-size:11px; letter-spacing:5px; color:var(--gold);
+    border:1px solid rgba(212,168,75,0.4); padding:7px 24px; margin-bottom:28px;
+    animation:fadeDown 1s ease both 0.2s; opacity:0;
+    background:rgba(13,10,4,0.4);
+  }
+
+  .hero-title {
+    font-size:clamp(42px, 8vw, 90px); font-weight:900; line-height:1.05;
+    animation:fadeDown 1s ease both 0.5s; opacity:0;
+    background:linear-gradient(135deg, #FFF 0%, var(--gold-light) 40%, var(--gold) 70%, var(--gold-dark) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    filter:drop-shadow(0 4px 30px rgba(212,168,75,0.3));
+    letter-spacing:6px;
+  }
+  .hero-title-line2 {
+    font-size:clamp(18px, 3vw, 28px); font-weight:600; color:var(--gold-pale);
+    margin-top:12px; letter-spacing:8px; opacity:0.85;
+    animation:fadeDown 1s ease both 0.8s; opacity:0;
+  }
+
+  .hero-sub {
+    margin-top:20px; font-size:clamp(13px, 1.8vw, 16px);
+    color:var(--text-muted); letter-spacing:3px;
+    animation:fadeDown 1s ease both 1s; opacity:0;
+  }
+
+  .hero-stats {
+    display:flex; gap:48px; margin-top:56px;
+    animation:fadeDown 1s ease both 1.2s; opacity:0;
+    flex-wrap:wrap; justify-content:center;
+  }
+  .stat-item { text-align:center; position:relative; }
+  .stat-item::after {
+    content:''; position:absolute; right:-24px; top:50%; transform:translateY(-50%);
+    width:1px; height:50px; background:linear-gradient(180deg, transparent, rgba(212,168,75,0.3), transparent);
+  }
+  .stat-item:last-child::after { display:none; }
+  .stat-num {
+    font-size:clamp(32px, 5vw, 52px); font-weight:900; color:var(--gold-light); line-height:1;
+    text-shadow:0 0 30px rgba(212,168,75,0.4);
+  }
+  .stat-label { font-size:11px; color:var(--text-muted); margin-top:8px; letter-spacing:2px; }
+  .stat-unit { font-size:14px; color:var(--sand); margin-top:2px; }
+
+  .scroll-hint {
+    position:absolute; bottom:60px; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    animation:fadeDown 1s ease both 1.8s, bounce 2s ease-in-out 3s infinite;
+    color:var(--text-muted); font-size:11px; letter-spacing:2px; z-index:3;
+  }
+  .scroll-arrow {
+    width:16px; height:16px;
+    border-right:2px solid var(--gold); border-bottom:2px solid var(--gold);
+    transform:rotate(45deg); animation:scrollArrow 1.5s ease-in-out infinite;
+  }
+
+  /* ===== SECTION COMMON ===== */
+  section { position:relative; z-index:2; padding:100px 0; }
+  .section-header { text-align:center; margin-bottom:72px; padding:0 20px; }
+  .section-eyebrow {
+    font-size:11px; letter-spacing:5px; color:var(--gold); text-transform:uppercase; margin-bottom:14px;
+    position:relative; display:inline-block;
+  }
+  .section-eyebrow::before, .section-eyebrow::after {
+    content:'◆'; position:absolute; top:50%; transform:translateY(-50%); color:var(--gold-dark); font-size:6px;
+  }
+  .section-eyebrow::before { right:calc(100% + 12px); }
+  .section-eyebrow::after { left:calc(100% + 12px); }
+  .section-title {
+    font-size:clamp(28px, 4.5vw, 48px); font-weight:900; color:#fff; line-height:1.2;
+  }
+  .section-title em {
+    font-style:normal;
+    background:linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .section-desc {
+    margin-top:16px; font-size:14px; color:var(--text-muted); max-width:560px;
+    margin-left:auto; margin-right:auto; line-height:1.9;
+  }
+
+  /* ===== MAP SECTION ===== */
+  #map-section { background:linear-gradient(180deg, var(--dark) 0%, var(--dark2) 50%, var(--dark) 100%); }
+
+  .map-container { max-width:1140px; margin:0 auto; padding:0 30px; position:relative; }
+  .map-wrapper {
+    position:relative; background:var(--card);
+    border:1px solid var(--border); border-radius:6px;
+    overflow:hidden;
+    box-shadow:0 0 100px rgba(212,168,75,0.06), 0 25px 80px rgba(0,0,0,0.7);
+  }
+
+  /* Pattern corner decoration */
+  .map-wrapper::before, .map-wrapper::after {
+    content:''; position:absolute; width:60px; height:60px;
+    border:2px solid rgba(212,168,75,0.2); z-index:5; pointer-events:none;
+  }
+  .map-wrapper::before { top:12px; left:12px; border-right:none; border-bottom:none; }
+  .map-wrapper::after { bottom:12px; right:12px; border-left:none; border-top:none; }
+
+  #map-svg { width:100%; height:auto; display:block; cursor:default; }
+
+  /* City nodes */
+  .city-node { cursor:pointer; transition:all 0.3s; }
+  .city-node:hover .city-pulse { opacity:0.5; }
+  .city-node:hover .city-dot-main { r:9; }
+
+  .city-pulse { animation:pulse 2.5s ease-in-out infinite; }
+  @keyframes pulse {
+    0%,100% { opacity:0.15; }
+    50% { opacity:0.4; }
+  }
+
+  .city-dot-main { transition:r 0.3s; }
+
+  .city-label { fill:#fff; font-size:13px; font-weight:700; font-family:'Noto Serif SC',serif; pointer-events:none; }
+  .city-sublabel { fill:var(--gold); font-size:9px; font-family:'Noto Serif SC',serif; pointer-events:none; letter-spacing:1px; }
+
+  /* Main node (Dunhuang) special styling */
+  .city-main .city-pulse { fill:var(--red-light); animation-duration:1.8s; }
+  .city-main .city-dot-main { fill:var(--red-light); }
+  .city-main .city-ring { stroke:var(--red-light); }
+
+  /* Secondary nodes */
+  .city-sec .city-pulse { fill:var(--gold); }
+  .city-sec .city-dot-main { fill:var(--gold-light); }
+  .city-sec .city-ring { stroke:rgba(240,200,102,0.35); }
+
+  /* Small nodes */
+  .city-small .city-pulse { fill:var(--sand); animation-duration:3s; }
+  .city-small .city-dot-main { fill:var(--sand); }
+
+  /* Pattern icons on nodes */
+  .node-pattern { pointer-events:none; }
+
+  /* Silk Road */
+  .silk-road { stroke:var(--gold); stroke-width:2; fill:none; stroke-dasharray:6 5; animation:dashMove 18s linear infinite; }
+  .silk-road-glow { stroke:var(--gold-light); stroke-width:5; fill:none; opacity:0.06; }
+  .silk-road-flow {
+    stroke:var(--gold-light); stroke-width:3; fill:none;
+    stroke-dasharray:40 300; stroke-dashoffset:0;
+    animation:roadFlow 3s linear infinite;
+    opacity:0.7; filter:drop-shadow(0 0 4px var(--gold));
+  }
+  @keyframes dashMove { from{stroke-dashoffset:0;} to{stroke-dashoffset:-220;} }
+  @keyframes roadFlow { from{stroke-dashoffset:340;} to{stroke-dashoffset:0;} }
+
+  .map-legend {
+    position:absolute; bottom:16px; right:16px;
+    background:rgba(13,10,4,0.88); border:1px solid var(--border); padding:12px 16px;
+    border-radius:4px; font-size:11px; color:var(--text-muted); z-index:4;
+  }
+  .legend-item { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .legend-item:last-child { margin-bottom:0; }
+  .legend-dot-main { width:10px; height:10px; border-radius:50%; background:var(--red-light); box-shadow:0 0 8px rgba(192,57,43,0.6); }
+  .legend-dot-sec { width:8px; height:8px; border-radius:50%; background:var(--gold-light); box-shadow:0 0 6px var(--gold); }
+  .legend-line { width:24px; height:2px; background:var(--gold); position:relative; overflow:hidden; }
+  .legend-line::after { content:''; position:absolute; left:-10px; top:0; width:8px; height:2px; background:var(--gold-light); animation:legendFlow 1.5s linear infinite; }
+  @keyframes legendFlow { to{left:30px;} }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity 0.35s;
+    backdrop-filter:blur(6px);
+  }
+  .modal-overlay.active { opacity:1; pointer-events:all; }
+
+  .modal-card {
+    background:linear-gradient(135deg, #1A1406 0%, #261E0A 100%);
+    border:1px solid var(--border-strong); border-radius:6px;
+    width:min(720px, 94vw); max-height:92vh; overflow-y:auto;
+    position:relative;
+    transform:translateY(40px) scale(0.96);
+    transition:all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow:0 40px 100px rgba(0,0,0,0.85), 0 0 0 1px rgba(212,168,75,0.08), inset 0 1px 0 rgba(212,168,75,0.1);
+  }
+  .modal-overlay.active .modal-card { transform:translateY(0) scale(1); }
+
+  /* Pattern corner decorations */
+  .modal-card::before, .modal-card::after { content:''; position:absolute; width:40px; height:40px; pointer-events:none; }
+  .modal-card::before { top:10px; left:10px; border-top:2px solid var(--gold); border-left:2px solid var(--gold); opacity:0.4; }
+  .modal-card::after { bottom:10px; right:10px; border-bottom:2px solid var(--gold); border-right:2px solid var(--gold); opacity:0.4; }
+
+  .modal-header { padding:36px 40px 24px; border-bottom:1px solid rgba(212,168,75,0.1); position:relative; }
+  .modal-city-tag { font-size:10px; letter-spacing:4px; color:var(--gold); margin-bottom:8px; }
+  .modal-city-name { font-size:34px; font-weight:900; color:#fff; }
+  .modal-city-en { font-size:13px; color:var(--text-muted); letter-spacing:2px; margin-top:4px; }
+  .modal-close {
+    position:absolute; top:24px; right:24px; width:34px; height:34px;
+    border:1px solid var(--border); border-radius:50%; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-muted); font-size:18px; background:transparent; transition:all 0.3s;
+  }
+  .modal-close:hover { background:rgba(212,168,75,0.1); color:var(--gold-light); border-color:var(--gold); }
+
+  .modal-body { padding:28px 40px 36px; }
+
+  .modal-pattern-icon {
+    width:64px; height:64px; border-radius:50%;
+    border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center;
+    font-size:28px; margin-bottom:16px;
+    background:rgba(212,168,75,0.06);
+  }
+
+  .modal-story {
+    font-size:14px; color:#C8AD6A; line-height:2;
+    padding:18px 20px; background:rgba(212,168,75,0.04);
+    border-left:3px solid var(--gold); border-radius:0 4px 4px 0;
+    margin-bottom:20px;
+  }
+
+  .modal-section-title {
+    font-size:11px; letter-spacing:3px; color:var(--gold); margin:24px 0 12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .modal-section-title::before { content:''; width:20px; height:1px; background:var(--gold); opacity:0.5; }
+
+  .intangible-tags { display:flex; flex-wrap:wrap; gap:6px; }
+  .intangible-tag {
+    display:inline-block; padding:5px 12px; border:1px solid var(--border);
+    border-radius:3px; font-size:12px; color:var(--text-light); background:rgba(212,168,75,0.05);
+    transition:all 0.25s;
+  }
+  .intangible-tag:hover { background:rgba(212,168,75,0.15); border-color:var(--gold); }
+
+  .modal-stat-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:8px; }
+  .modal-stat {
+    background:rgba(212,168,75,0.05); border:1px solid var(--border); padding:14px; border-radius:4px;
+    text-align:center; transition:all 0.3s;
+  }
+  .modal-stat:hover { border-color:var(--border-strong); background:rgba(212,168,75,0.08); }
+  .modal-stat-num { font-size:24px; font-weight:900; color:var(--gold-light); line-height:1; }
+  .modal-stat-label { font-size:10px; color:var(--text-muted); margin-top:4px; letter-spacing:1px; }
+
+  .modal-compare { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px; }
+  .compare-card {
+    padding:16px; border:1px solid var(--border); border-radius:4px; text-align:center;
+    transition:all 0.3s;
+  }
+  .compare-card:hover { border-color:var(--border-strong); }
+  .compare-card.ancient { background:rgba(212,168,75,0.04); }
+  .compare-card.modern { background:rgba(26,188,156,0.04); border-color:rgba(26,188,156,0.15); }
+  .compare-era { font-size:10px; letter-spacing:2px; color:var(--gold); margin-bottom:6px; }
+  .compare-era.mod { color:var(--teal); }
+  .compare-title { font-size:15px; font-weight:700; color:#fff; margin-bottom:8px; }
+  .compare-desc { font-size:12px; color:var(--text-muted); line-height:1.7; }
+
+  .audio-toggle {
+    display:flex; align-items:center; gap:8px; margin-top:16px; padding:10px 14px;
+    border:1px solid var(--border); border-radius:4px; cursor:pointer; width:fit-content;
+    font-size:12px; color:var(--text-muted); transition:all 0.3s;
+  }
+  .audio-toggle:hover { border-color:var(--gold); color:var(--gold-light); }
+  .audio-toggle.playing { border-color:var(--teal); color:var(--teal); }
+
+  /* ===== DATA VIZ ===== */
+  #data-section {
+    background:var(--dark2);
+    border-top:1px solid rgba(212,168,75,0.06); border-bottom:1px solid rgba(212,168,75,0.06);
+  }
+
+  .chart-grid { max-width:1140px; margin:0 auto; padding:0 30px; display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .chart-card {
+    background:var(--card); border:1px solid var(--border); border-radius:6px;
+    padding:24px 28px; position:relative; overflow:hidden;
+    transition:border-color 0.3s;
+  }
+  .chart-card:hover { border-color:var(--border-strong); }
+  .chart-card.wide { grid-column:1 / -1; }
+
+  /* Pattern corners */
+  .chart-card::before, .chart-card::after { content:''; position:absolute; width:20px; height:20px; pointer-events:none; }
+  .chart-card::before { top:8px; left:8px; border-top:1px solid rgba(212,168,75,0.2); border-left:1px solid rgba(212,168,75,0.2); }
+  .chart-card::after { bottom:8px; right:8px; border-bottom:1px solid rgba(212,168,75,0.2); border-right:1px solid rgba(212,168,75,0.2); }
+
+  .chart-title { font-size:15px; font-weight:700; color:#fff; margin-bottom:4px; }
+  .chart-subtitle { font-size:11px; color:var(--text-muted); margin-bottom:16px; letter-spacing:1px; }
+  .chart-desc {
+    font-size:12px; color:var(--text-muted); margin-top:12px; padding-top:12px;
+    border-top:1px solid rgba(212,168,75,0.08); line-height:1.7;
+  }
+
+  /* ===== TIMELINE ===== */
+  #timeline-section { background:var(--dark); }
+  .timeline { max-width:900px; margin:0 auto; padding:0 30px; position:relative; }
+  .timeline::before {
+    content:''; position:absolute; left:50%; top:0; bottom:0; width:2px;
+    background:linear-gradient(180deg, transparent 0%, var(--gold-dark) 10%, var(--gold) 50%, var(--gold-dark) 90%, transparent 100%);
+    transform:translateX(-50%);
+    box-shadow:0 0 20px rgba(212,168,75,0.3);
+    animation:timelineGlow 3s ease-in-out infinite;
+  }
+  @keyframes timelineGlow {
+    0%,100% { box-shadow:0 0 10px rgba(212,168,75,0.2); }
+    50% { box-shadow:0 0 30px rgba(212,168,75,0.5); }
+  }
+
+  .timeline-item {
+    display:grid; grid-template-columns:1fr 70px 1fr; gap:20px; margin-bottom:56px;
+    align-items:start; opacity:0; transform:translateY(20px);
+    transition:all 0.7s ease;
+  }
+  .timeline-item.visible { opacity:1; transform:translateY(0); }
+
+  .timeline-item:nth-child(odd) .timeline-content { grid-column:1; text-align:right; }
+  .timeline-item:nth-child(odd) .timeline-empty { grid-column:3; }
+  .timeline-item:nth-child(even) .timeline-content { grid-column:3; text-align:left; }
+  .timeline-item:nth-child(even) .timeline-empty { grid-column:1; }
+
+  .timeline-node { grid-column:2; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .timeline-dot {
+    width:16px; height:16px; border-radius:50%; border:3px solid var(--dark);
+    box-shadow:0 0 12px rgba(212,168,75,0.5); flex-shrink:0; position:relative; z-index:2;
+  }
+  .timeline-dot.gold { background:var(--gold); }
+  .timeline-dot.red { background:var(--red-light); box-shadow:0 0 12px rgba(231,76,60,0.5); }
+  .timeline-dot.teal { background:var(--teal); box-shadow:0 0 12px rgba(26,188,156,0.5); }
+
+  .timeline-icon {
+    font-size:20px; margin-bottom:4px;
+    width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--border); background:rgba(212,168,75,0.05);
+  }
+
+  .timeline-year { font-size:12px; color:var(--gold); font-weight:700; letter-spacing:1px; margin-bottom:6px; }
+  .timeline-event { font-size:15px; font-weight:700; color:#fff; margin-bottom:8px; }
+  .timeline-desc { font-size:12px; color:var(--text-muted); line-height:1.8; }
+  .timeline-pattern { font-size:11px; color:var(--sand); margin-top:8px; font-style:italic; }
+
+  /* ===== HERITAGE GRID ===== */
+  #heritage-section { background:linear-gradient(180deg, var(--dark2) 0%, var(--dark) 100%); }
+
+  .heritage-grid { max-width:1140px; margin:0 auto; padding:0 30px; display:grid; grid-template-columns:repeat(4, 1fr); gap:20px; }
+
+  .heritage-card {
+    background:var(--card); border:1px solid var(--border); border-radius:6px;
+    overflow:hidden; transition:all 0.35s; cursor:pointer; position:relative;
+  }
+  .heritage-card:hover {
+    transform:translateY(-6px) scale(1.02);
+    border-color:var(--border-strong);
+    box-shadow:0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(212,168,75,0.1);
+  }
+  .heritage-card::before {
+    content:''; position:absolute; inset:0; border-radius:6px;
+    background:linear-gradient(135deg, rgba(212,168,75,0.05) 0%, transparent 60%);
+    opacity:0; transition:opacity 0.35s; pointer-events:none;
+  }
+  .heritage-card:hover::before { opacity:1; }
+
+  .heritage-card-img {
+    height:130px; position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; font-size:52px;
+  }
+  .heritage-card-img::after {
+    content:''; position:absolute; bottom:0; left:0; right:0; height:40px;
+    background:linear-gradient(transparent, var(--dark2));
+  }
+
+  .heritage-pattern-badge {
+    position:absolute; top:10px; left:10px; font-size:9px; color:var(--gold);
+    letter-spacing:1px; padding:3px 8px; border:1px solid var(--border);
+    border-radius:2px; background:rgba(13,10,4,0.7); z-index:2;
+  }
+
+  .heritage-card-body { padding:16px 18px; }
+  .heritage-city-badge { font-size:10px; color:var(--gold); letter-spacing:2px; margin-bottom:6px; }
+  .heritage-name { font-size:15px; font-weight:700; color:#fff; margin-bottom:6px; }
+  .heritage-desc { font-size:11px; color:var(--text-muted); line-height:1.7; }
+  .heritage-pattern-link { font-size:10px; color:var(--sand); margin-top:8px; font-style:italic; }
+
+  .heritage-level {
+    position:absolute; top:10px; right:10px;
+    font-size:9px; letter-spacing:1px; padding:3px 8px; border-radius:2px; z-index:2;
+  }
+  .heritage-level.world { background:rgba(192,57,43,0.85); color:#fff; }
+  .heritage-level.national { background:rgba(212,168,75,0.85); color:var(--dark); }
+  .heritage-level.province { background:rgba(26,188,156,0.85); color:#fff; }
+
+  /* ===== SUMMARY SECTION ===== */
+  #summary-section {
+    background:linear-gradient(180deg, var(--dark) 0%, #0A0804 100%);
+    text-align:center; padding:120px 30px;
+  }
+  .summary-content { max-width:700px; margin:0 auto; }
+  .summary-icon { font-size:64px; margin-bottom:20px; opacity:0.8; }
+  .summary-title { font-size:clamp(24px, 4vw, 36px); font-weight:900; color:#fff; margin-bottom:16px; }
+  .summary-title em { font-style:normal; color:var(--gold-light); }
+  .summary-text { font-size:14px; color:var(--text-muted); line-height:2; margin-bottom:32px; }
+  .summary-pillars { display:flex; gap:24px; justify-content:center; flex-wrap:wrap; }
+  .summary-pillar {
+    padding:20px 28px; border:1px solid var(--border); border-radius:6px;
+    background:rgba(212,168,75,0.03); transition:all 0.3s; min-width:160px;
+  }
+  .summary-pillar:hover { border-color:var(--border-strong); background:rgba(212,168,75,0.06); transform:translateY(-4px); }
+  .pillar-icon { font-size:28px; margin-bottom:8px; }
+  .pillar-title { font-size:13px; font-weight:700; color:var(--gold-light); margin-bottom:4px; }
+  .pillar-desc { font-size:11px; color:var(--text-muted); }
+
+  /* ===== FOOTER ===== */
+  footer { position:relative; z-index:2; padding:48px 30px; text-align:center; border-top:1px solid rgba(212,168,75,0.06); background:var(--dark); }
+  .footer-logo { font-size:22px; font-weight:900; color:var(--gold-light); letter-spacing:5px; margin-bottom:10px; }
+  .footer-tagline { font-size:12px; color:var(--text-muted); letter-spacing:3px; margin-bottom:24px; }
+  .footer-meta { font-size:10px; color:rgba(139,105,20,0.45); letter-spacing:1px; line-height:1.8; }
+
+  /* ===== BACK TO TOP ===== */
+  #backTop {
+    position:fixed; bottom:30px; right:30px; z-index:90;
+    width:44px; height:44px; border:1px solid var(--border); border-radius:50%;
+    background:rgba(13,10,4,0.85); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    color:var(--gold); font-size:18px; opacity:0; pointer-events:none;
+    transition:all 0.3s; backdrop-filter:blur(8px);
+  }
+  #backTop.visible { opacity:1; pointer-events:all; }
+  #backTop:hover { background:rgba(212,168,75,0.15); border-color:var(--gold); transform:translateY(-3px); }
+
+  /* ===== PATTERN TIP POPUP ===== */
+  .pattern-tip {
+    position:fixed; bottom:90px; right:30px; z-index:85; max-width:260px;
+    background:var(--card); border:1px solid var(--border); border-radius:6px;
+    padding:16px 18px; font-size:12px; color:var(--text-muted); line-height:1.7;
+    opacity:0; transform:translateY(10px); pointer-events:none;
+    transition:all 0.4s ease; box-shadow:0 8px 30px rgba(0,0,0,0.5);
+  }
+  .pattern-tip.visible { opacity:1; transform:translateY(0); pointer-events:all; }
+  .pattern-tip-title { color:var(--gold); font-weight:700; margin-bottom:6px; font-size:13px; }
+  .pattern-tip-close { position:absolute; top:6px; right:8px; cursor:pointer; color:var(--sand); font-size:14px; }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px);} to{opacity:1;transform:translateY(0);} }
+  @keyframes scrollArrow { 0%,100%{transform:rotate(45deg)translateY(0);opacity:1;} 50%{transform:rotate(45deg)translateY(6px);opacity:0.5;} }
+  @keyframes bounce { 0%,100%{transform:translateX(-50%)translateY(0);} 50%{transform:translateX(-50%)translateY(8px);} }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
+
+  .fade-in-up { opacity:0; transform:translateY(30px); transition:all 0.8s ease; }
+  .fade-in-up.visible { opacity:1; transform:translateY(0); }
+
+  /* ===== DUNHUANG HERITAGE DETAIL ===== */
+  #dunhuang-heritage-detail {
+    background: linear-gradient(180deg, var(--dark) 0%, var(--dark2) 30%, var(--dark3) 70%, var(--dark) 100%);
+  }
+
+  .dh-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 30px;
+  }
+
+  .dh-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    margin-bottom: 72px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease;
+  }
+
+  .dh-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .dh-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .dh-img {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    position: relative;
+  }
+
+  .dh-img::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 1px rgba(212,168,75,0.1);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .dh-img img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+
+  .dh-img:hover img {
+    transform: scale(1.05);
+  }
+
+  .dh-content {
+    padding: 8px 0;
+  }
+
+  .dh-num {
+    font-size: 48px;
+    font-weight: 900;
+    color: rgba(212,168,75,0.12);
+    line-height: 1;
+    margin-bottom: 8px;
+    font-family: 'Noto Serif SC', serif;
+  }
+
+  .dh-name {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+
+  .dh-tag {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 20px;
+    background: rgba(212,168,75,0.05);
+  }
+
+  .dh-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 2;
+    margin-bottom: 16px;
+  }
+
+  .dh-highlight {
+    font-size: 13px;
+    color: var(--sand);
+    line-height: 1.8;
+    padding: 12px 16px;
+    background: rgba(212,168,75,0.04);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* ===== MUSIC PLAYER ===== */
+  .music-toggle {
+    position: fixed;
+    bottom: 90px;
+    right: 30px;
+    z-index: 90;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(13,10,4,0.9);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-size: 18px;
+    transition: all 0.3s;
+    backdrop-filter: blur(8px);
+  }
+
+  .music-toggle:hover {
+    background: rgba(212,168,75,0.15);
+    border-color: var(--gold);
+    transform: translateY(-3px);
+  }
+
+  .music-toggle.playing {
+    animation: musicPulse 2.5s ease-in-out infinite;
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  @keyframes musicPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(212,168,75,0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(212,168,75,0); }
+  }
+
+  .music-label {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    background: var(--card);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .music-toggle:hover .music-label {
+    opacity: 1;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width:768px) {
+    nav { padding:12px 20px; }
+    nav.scrolled { padding:8px 20px; }
+    .nav-links { display:none; }
+    .hero-stats { gap:24px; }
+    .stat-item::after { display:none; }
+    .chart-grid { grid-template-columns:1fr; padding:0 20px; }
+    .chart-card.wide { grid-column:1; }
+    .heritage-grid { grid-template-columns:repeat(2, 1fr); padding:0 20px; }
+    .map-container { padding:0 16px; }
+    .timeline { padding:0 20px; }
+    .modal-body { padding:20px 24px; }
+    .modal-header { padding:28px 24px 20px; }
+    .modal-compare { grid-template-columns:1fr; }
+    .modal-stat-grid { grid-template-columns:repeat(3, 1fr); }
+    .camel-caravan { display:none; }
+    .summary-pillars { gap:12px; }
+    .summary-pillar { min-width:130px; padding:16px 20px; }
+    #backTop { bottom:20px; right:16px; width:40px; height:40px; }
+    .pattern-tip { right:16px; bottom:70px; max-width:220px; }
+    .dh-item { grid-template-columns: 1fr; gap:24px; margin-bottom:56px; }
+    .dh-img img { height:220px; }
+    .dh-num { font-size:36px; }
+    .dh-name { font-size:22px; }
+    .music-toggle { bottom:70px; right:16px; width:44px; height:44px; }
+    .music-label { display:none; }
+  }
+  @media (max-width:480px) {
+    .heritage-grid { grid-template-columns:1fr; }
+    .modal-stat-grid { grid-template-columns:1fr 1fr; }
+    .hero-title { letter-spacing:2px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Pattern background layer -->
+<div class="pattern-bg"></div>
+
+<!-- Stars Canvas -->
+<canvas id="particles"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">丝路遗韵 <span>HEXI CORRIDOR</span></div>
+  <ul class="nav-links">
+    <li><a href="#map-section">交互地图</a></li>
+    <li><a href="#data-section">数据可视化</a></li>
+    <li><a href="#timeline-section">历史脉络</a></li>
+    <li><a href="#heritage-section">非遗图谱</a></li>
+    <li><a href="#dunhuang-heritage-detail">敦煌非遗</a></li>
+    <li><a href="#summary-section">项目总结</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg-img"></div>
+  <div class="hero-overlay"></div>
+
+  <!-- Camel caravan -->
+  <div class="camel-caravan">
+    <div class="camel"></div>
+    <div class="camel"></div>
+    <div class="camel"></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-tag">河西走廊 · 文化数字化传播项目</div>
+    <h1 class="hero-title">丝路遗韵</h1>
+    <div class="hero-title-line2">河西走廊非物质文化遗产交互地图</div>
+    <p class="hero-sub">千年丝路 · 一图览尽 · 非遗新生</p>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-num" data-target="238">0</div>
+        <div class="stat-unit">项</div>
+        <div class="stat-label">河西走廊非遗数量</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" data-target="2100">0</div>
+        <div class="stat-unit">年</div>
+        <div class="stat-label">丝绸之路存续年限</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" data-target="735">0</div>
+        <div class="stat-unit">个</div>
+        <div class="stat-label">敦煌莫高窟洞窟</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" data-target="45000">0</div>
+        <div class="stat-unit">㎡</div>
+        <div class="stat-label">壁画总面积</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>向下探索</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- MAP SECTION -->
+<section id="map-section">
+  <div class="section-header fade-in-up">
+    <div class="section-eyebrow">INTERACTIVE MAP</div>
+    <h2 class="section-title">点击城市节点<em>，探索千年遗韵</em></h2>
+    <p class="section-desc">河西走廊东起乌鞘岭，西至玉门关，全长约1000公里，是古丝绸之路的咽喉要道。图中虚线为古丝绸之路主干线。</p>
+  </div>
+
+  <div class="map-container">
+    <div class="map-wrapper">
+      <svg id="map-svg" viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="bgGrad" cx="50%" cy="60%" r="70%">
+            <stop offset="0%" stop-color="#1A1406"/>
+            <stop offset="100%" stop-color="#0D0A04"/>
+          </radialGradient>
+          <filter id="glowGold"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="glowRed"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="transparent"/><stop offset="50%" stop-color="var(--gold-light)"/><stop offset="100%" stop-color="transparent"/></linearGradient>
+        </defs>
+        <rect width="900" height="380" fill="url(#bgGrad)"/>
+
+        <!-- Terrain -->
+        <ellipse cx="90" cy="300" rx="130" ry="45" fill="#1E1608" opacity="0.85"/>
+        <ellipse cx="340" cy="315" rx="110" ry="32" fill="#1E1608" opacity="0.65"/>
+        <ellipse cx="660" cy="305" rx="150" ry="38" fill="#1E1608" opacity="0.75"/>
+        <ellipse cx="830" cy="285" rx="110" ry="35" fill="#1E1608" opacity="0.65"/>
+
+        <!-- Qilian Mountains -->
+        <path d="M50,210 L130,135 L190,175 L260,115 L330,155 L410,95 L480,145 L550,85 L620,125 L690,75 L750,115 L820,85 L900,125 L900,380 L0,380 Z" fill="#161108" opacity="0.92"/>
+        <path d="M50,230 L130,160 L190,195 L260,145 L330,180 L410,125 L480,170 L550,115 L620,153 L690,105 L750,145 L820,115 L900,150 L900,380 L0,380 Z" fill="#1A1406" opacity="0.82"/>
+
+        <!-- Desert dots -->
+        <g opacity="0.1" fill="#D4A84B">
+          <circle cx="170" cy="260" r="1.5"/><circle cx="210" cy="275" r="1"/><circle cx="250" cy="255" r="1.5"/>
+          <circle cx="290" cy="270" r="1"/><circle cx="370" cy="285" r="1.5"/><circle cx="420" cy="260" r="1"/>
+          <circle cx="470" cy="280" r="1.5"/><circle cx="530" cy="268" r="1"/><circle cx="580" cy="275" r="1.5"/>
+          <circle cx="630" cy="260" r="1"/><circle cx="690" cy="270" r="1.5"/><circle cx="740" cy="255" r="1"/>
+        </g>
+
+        <!-- Province label -->
+        <text x="450" y="310" text-anchor="middle" fill="rgba(212,168,75,0.1)" font-size="55" font-weight="900" font-family="serif" letter-spacing="10">甘 肃</text>
+        <text x="420" y="175" text-anchor="middle" fill="rgba(212,168,75,0.18)" font-size="11" font-family="serif" letter-spacing="4">祁 连 山 脉</text>
+        <text x="450" y="350" text-anchor="middle" fill="rgba(212,168,75,0.08)" font-size="11" font-family="serif" letter-spacing="4">巴 丹 吉 林 沙 漠</text>
+
+        <!-- ===== SILK ROAD ===== -->
+        <path d="M75,235 C145,225 195,220 265,222 C345,224 385,228 455,220 C525,212 575,216 655,210 C725,205 775,210 835,205"
+              class="silk-road-glow"/>
+        <path d="M75,235 C145,225 195,220 265,222 C345,224 385,228 455,220 C525,212 575,216 655,210 C725,205 775,210 835,205"
+              class="silk-road"/>
+        <path d="M75,235 C145,225 195,220 265,222 C345,224 385,228 455,220 C525,212 575,216 655,210 C725,205 775,210 835,205"
+              class="silk-road-flow"/>
+
+        <!-- Direction arrows -->
+        <g fill="none" stroke="rgba(212,168,75,0.3)" stroke-width="1.2">
+          <polyline points="165,222 175,218 165,214" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="375,224 385,220 375,216" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="595,213 605,209 595,205" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="775,206 785,202 775,198" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+
+        <text x="45" y="248" text-anchor="middle" fill="rgba(212,168,75,0.3)" font-size="9" font-family="serif">← 长安</text>
+        <text x="865" y="218" text-anchor="start" fill="rgba(212,168,75,0.3)" font-size="9" font-family="serif">西域 →</text>
+
+        <!-- ===== CITY NODES ===== -->
+
+        <!-- 武威 Wuwei -->
+        <g class="city-node city-sec" data-city="wuwei" onclick="openCity('wuwei')" filter="url(#glowGold)">
+          <circle class="city-pulse" cx="170" cy="222" r="16" fill="#D4A84B"/>
+          <circle class="city-ring" cx="170" cy="222" r="9" fill="none" stroke-width="1.5"/>
+          <circle class="city-dot-main" cx="170" cy="222" r="5.5" fill="#F0C866"/>
+          <!-- Lotus pattern icon -->
+          <g class="node-pattern" transform="translate(170, 222)">
+            <circle r="3" fill="none" stroke="rgba(240,200,102,0.4)" stroke-width="0.5"/>
+            <path d="M0,-3 L1,-1 L3,0 L1,1 L0,3 L-1,1 L-3,0 L-1,-1Z" fill="rgba(240,200,102,0.25)"/>
+          </g>
+          <text class="city-label" x="170" y="206" text-anchor="middle">武威</text>
+          <text class="city-sublabel" x="170" y="195" text-anchor="middle">Wuwei</text>
+          <text x="170" y="238" text-anchor="middle" fill="rgba(212,168,75,0.4)" font-size="8" font-family="serif">凉州 · 莲花纹</text>
+        </g>
+
+        <!-- 山丹 Shandan -->
+        <g class="city-node city-small" data-city="shandan" onclick="openCity('shandan')">
+          <circle class="city-pulse" cx="253" cy="221" r="10"/>
+          <circle class="city-dot-main" cx="253" cy="221" r="3.5"/>
+          <text x="253" y="208" text-anchor="middle" fill="#B8892A" font-size="10" font-family="serif">山丹</text>
+        </g>
+
+        <!-- 张掖 Zhangye -->
+        <g class="city-node city-sec" data-city="zhangye" onclick="openCity('zhangye')" filter="url(#glowGold)">
+          <circle class="city-pulse" cx="335" cy="220" r="16"/>
+          <circle class="city-ring" cx="335" cy="220" r="9" fill="none" stroke-width="1.5"/>
+          <circle class="city-dot-main" cx="335" cy="220" r="5.5"/>
+          <!-- Cloud pattern icon -->
+          <g class="node-pattern" transform="translate(335, 220)">
+            <path d="M-3,0 Q-2,-3 0,-2 Q2,-3 3,0 Q2,2 0,1 Q-2,2 -3,0Z" fill="rgba(240,200,102,0.25)"/>
+          </g>
+          <text class="city-label" x="335" y="204" text-anchor="middle">张掖</text>
+          <text class="city-sublabel" x="335" y="193" text-anchor="middle">Zhangye</text>
+          <text x="335" y="236" text-anchor="middle" fill="rgba(212,168,75,0.4)" font-size="8" font-family="serif">甘州 · 云纹</text>
+        </g>
+
+        <!-- 嘉峪关 Jiayuguan -->
+        <g class="city-node city-small" data-city="jiayuguan" onclick="openCity('jiayuguan')">
+          <circle class="city-pulse" cx="423" cy="218" r="10"/>
+          <circle class="city-dot-main" cx="423" cy="218" r="3.5"/>
+          <text x="423" y="205" text-anchor="middle" fill="#B8892A" font-size="10" font-family="serif">嘉峪关</text>
+        </g>
+
+        <!-- 酒泉 Jiuquan -->
+        <g class="city-node city-sec" data-city="jiuquan" onclick="openCity('jiuquan')" filter="url(#glowGold)">
+          <circle class="city-pulse" cx="505" cy="217" r="16"/>
+          <circle class="city-ring" cx="505" cy="217" r="9" fill="none" stroke-width="1.5"/>
+          <circle class="city-dot-main" cx="505" cy="217" r="5.5"/>
+          <!-- Geometric pattern icon -->
+          <g class="node-pattern" transform="translate(505, 217)">
+            <rect x="-2.5" y="-2.5" width="5" height="5" fill="none" stroke="rgba(240,200,102,0.3)" stroke-width="0.5" transform="rotate(45)"/>
+          </g>
+          <text class="city-label" x="505" y="201" text-anchor="middle">酒泉</text>
+          <text class="city-sublabel" x="505" y="190" text-anchor="middle">Jiuquan</text>
+          <text x="505" y="233" text-anchor="middle" fill="rgba(212,168,75,0.4)" font-size="8" font-family="serif">肃州 · 几何纹</text>
+        </g>
+
+        <!-- 敦煌 Dunhuang - MAIN NODE -->
+        <g class="city-node city-main" data-city="dunhuang" onclick="openCity('dunhuang')" filter="url(#glowRed)">
+          <circle class="city-pulse" cx="705" cy="210" r="22"/>
+          <circle class="city-ring" cx="705" cy="210" r="12" fill="none" stroke-width="2"/>
+          <circle class="city-ring" cx="705" cy="210" r="17" fill="none" stroke="rgba(231,76,60,0.15)" stroke-width="1"/>
+          <circle class="city-dot-main" cx="705" cy="210" r="8"/>
+          <!-- 忍冬纹 icon -->
+          <g class="node-pattern" transform="translate(705, 210)">
+            <path d="M0,-4 Q2,-2 4,0 Q2,2 0,4 Q-2,2 -4,0 Q-2,-2 0,-4Z" fill="rgba(231,76,60,0.3)"/>
+            <circle r="2" fill="rgba(240,200,102,0.4)"/>
+          </g>
+          <text class="city-label" x="705" y="191" text-anchor="middle" font-size="16" fill="#fff">敦煌</text>
+          <text class="city-sublabel" x="705" y="179" text-anchor="middle">Dunhuang</text>
+          <text x="705" y="230" text-anchor="middle" fill="rgba(231,76,60,0.7)" font-size="9" font-family="serif" font-weight="700">莫高窟 · 忍冬纹</text>
+        </g>
+
+        <!-- 玉门关 Yumenguan -->
+        <g class="city-node city-small" data-city="yumenguan" onclick="openCity('yumenguan')">
+          <circle class="city-pulse" cx="805" cy="195" r="10"/>
+          <circle class="city-dot-main" cx="805" cy="195" r="3.5"/>
+          <text x="805" y="182" text-anchor="middle" fill="#B8892A" font-size="10" font-family="serif">玉门关</text>
+        </g>
+
+        <!-- Connection lines -->
+        <g stroke="rgba(212,168,75,0.04)" stroke-width="1" stroke-dasharray="4 3">
+          <line x1="170" y1="222" x2="253" y2="221"/>
+          <line x1="253" y1="221" x2="335" y2="220"/>
+          <line x1="335" y1="220" x2="423" y2="218"/>
+          <line x1="423" y1="218" x2="505" y2="217"/>
+        </g>
+
+        <!-- Yellow River hint -->
+        <path d="M115,295 C135,275 155,265 175,260" stroke="rgba(26,188,156,0.18)" stroke-width="1.5" fill="none" stroke-dasharray="3 4"/>
+        <text x="113" y="305" fill="rgba(26,188,156,0.25)" font-size="8" font-family="serif">黄河</text>
+
+        <!-- Compass -->
+        <g transform="translate(860, 55)" opacity="0.35">
+          <circle r="18" fill="none" stroke="rgba(212,168,75,0.35)" stroke-width="1"/>
+          <line x1="0" y1="-14" x2="0" y2="14" stroke="rgba(212,168,75,0.5)" stroke-width="1"/>
+          <line x1="-14" y1="0" x2="14" y2="0" stroke="rgba(212,168,75,0.5)" stroke-width="1"/>
+          <polygon points="0,-14 -3,-6 3,-6" fill="#D4A84B"/>
+          <text y="25" text-anchor="middle" fill="rgba(212,168,75,0.5)" font-size="8">N</text>
+        </g>
+
+        <!-- Scale bar -->
+        <g transform="translate(35, 350)" opacity="0.35">
+          <line x1="0" y1="0" x2="60" y2="0" stroke="rgba(212,168,75,0.5)" stroke-width="1.5"/>
+          <line x1="0" y1="-4" x2="0" y2="4" stroke="rgba(212,168,75,0.5)" stroke-width="1.5"/>
+          <line x1="60" y1="-4" x2="60" y2="4" stroke="rgba(212,168,75,0.5)" stroke-width="1.5"/>
+          <text x="30" y="14" text-anchor="middle" fill="rgba(212,168,75,0.5)" font-size="8">200 km</text>
+        </g>
+      </svg>
+
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot-main"></div><span>核心文化地</span></div>
+        <div class="legend-item"><div class="legend-dot-sec"></div><span>丝路重镇</span></div>
+        <div class="legend-item"><div class="legend-line"></div><span>古丝绸之路</span></div>
+      </div>
+    </div>
+    <p style="text-align:center; margin-top:16px; font-size:12px; color:var(--text-muted); letter-spacing:1px;">
+      💡 点击地图上的城市节点，探索当地非遗文化与古今对比
+    </p>
+  </div>
+</section>
+
+<!-- DATA SECTION -->
+<section id="data-section">
+  <div class="section-header fade-in-up">
+    <div class="section-eyebrow">DATA VISUALIZATION</div>
+    <h2 class="section-title">数字呈现<em>丝路文明</em>脉搏</h2>
+    <p class="section-desc">基于国家非遗名录、文旅部统计年鉴、联合国教科文组织报告等权威数据来源</p>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card fade-in-up">
+      <div class="chart-title">河西走廊非遗项目数量变化</div>
+      <div class="chart-subtitle">2006—2023 · 国家级非物质文化遗产名录</div>
+      <canvas id="heritageChart" height="200"></canvas>
+      <div class="chart-desc">📊 数据解读：2006年首批国家级非遗公布以来，河西走廊非遗保护工作持续推进。2014年"一带一路"倡议提出后增速显著加快，体现了政策对文化遗产保护的强力推动。</div>
+    </div>
+
+    <div class="chart-card fade-in-up">
+      <div class="chart-title">各城市非遗项目分布</div>
+      <div class="chart-subtitle">2023年现存非遗项目统计</div>
+      <canvas id="cityChart" height="200"></canvas>
+      <div class="chart-desc">📊 数据解读：敦煌以64项非遗居首，与其作为丝路文化交汇点的历史地位相符。酒泉、张掖紧随其后，三地合计占河西走廊非遗总量的近70%。</div>
+    </div>
+
+    <div class="chart-card wide fade-in-up">
+      <div class="chart-title">古丝绸之路商贸流量模拟数据</div>
+      <div class="chart-subtitle">基于史料记载的各朝代丝路贸易活跃指数（相对值）</div>
+      <canvas id="tradeChart" height="120"></canvas>
+      <div class="chart-desc">📊 数据解读：盛唐时期丝路贸易达到历史顶峰，西域诸国朝贡与民间商队络绎不绝。宋元时期海上丝路崛起后陆路有所衰落，但明代嘉峪关的修建标志着官方对丝路通道的持续重视。</div>
+    </div>
+
+    <div class="chart-card fade-in-up">
+      <div class="chart-title">非遗类别构成</div>
+      <div class="chart-subtitle">河西走廊地区非遗分类占比</div>
+      <canvas id="categoryChart" height="200"></canvas>
+      <div class="chart-desc">📊 数据解读：传统技艺类占比最高（28%），反映了河西走廊作为丝路商贸通道带来的手工艺繁荣。民间音乐（22%）紧随其后，体现了多民族文化交融的特色。</div>
+    </div>
+
+    <div class="chart-card fade-in-up">
+      <div class="chart-title">非遗传承人年龄分布</div>
+      <div class="chart-subtitle">传承断层危机预警数据（2023）</div>
+      <canvas id="ageChart" height="200"></canvas>
+      <div class="chart-desc">📊 数据解读：61岁以上传承人占比高达47%，而30岁以下仅占3%，严峻的"青黄不接"现状亟需数字化保护与年轻传承人的培养介入。</div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE SECTION -->
+<section id="timeline-section">
+  <div class="section-header fade-in-up">
+    <div class="section-eyebrow">HISTORY TIMELINE</div>
+    <h2 class="section-title">两千年<em>丝路文明</em>年表</h2>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-content">
+        <div class="timeline-year">公元前121年</div>
+        <div class="timeline-event">霍去病开辟河西走廊</div>
+        <div class="timeline-desc">汉武帝遣骠骑将军霍去病两次出击匈奴，夺取河西走廊，设武威、张掖、酒泉、敦煌四郡，丝绸之路正式贯通。</div>
+        <div class="timeline-pattern">🏛️ 纹样萌芽期：早期莲花纹随佛教东传进入河西</div>
+      </div>
+      <div class="timeline-node">
+        <div class="timeline-icon">⚔️</div>
+        <div class="timeline-dot gold"></div>
+      </div>
+      <div class="timeline-empty"></div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-empty"></div>
+      <div class="timeline-node">
+        <div class="timeline-icon">🕌</div>
+        <div class="timeline-dot red"></div>
+      </div>
+      <div class="timeline-content">
+        <div class="timeline-year">公元366年</div>
+        <div class="timeline-event">莫高窟首窟开凿</div>
+        <div class="timeline-desc">僧人乐僔于敦煌三危山见金光，遂在鸣沙山东麓开凿第一窟，此后历经16朝千年营造，成就人类文明奇迹。</div>
+        <div class="timeline-pattern">🎨 纹样奠基期：忍冬纹、莲花纹成为壁画核心装饰母题</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-content">
+        <div class="timeline-year">公元500—580年</div>
+        <div class="timeline-event">北朝忍冬纹鼎盛</div>
+        <div class="timeline-desc">北魏至北周时期，敦煌壁画中忍冬纹样式趋于成熟，S形藤蔓与莲花、飞天融合，形成独特的"敦煌样式"。</div>
+        <div class="timeline-pattern">🌿 纹样高峰期：忍冬纹取代早期简单莲花纹，成为主导装饰</div>
+      </div>
+      <div class="timeline-node">
+        <div class="timeline-icon">🌿</div>
+        <div class="timeline-dot gold"></div>
+      </div>
+      <div class="timeline-empty"></div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-empty"></div>
+      <div class="timeline-node">
+        <div class="timeline-icon">🏺</div>
+        <div class="timeline-dot gold"></div>
+      </div>
+      <div class="timeline-content">
+        <div class="timeline-year">7—9世纪</div>
+        <div class="timeline-event">盛唐丝路全盛期</div>
+        <div class="timeline-desc">唐朝国力鼎盛，丝路贸易达到顶峰。西域商人、使节络绎不绝，玄奘取经路过此地，张议潮收复敦煌。凉州词成为时代绝唱。</div>
+        <div class="timeline-pattern">🌸 纹样融合期：卷草纹取代忍冬纹，中西纹样交融达到巅峰</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-content">
+        <div class="timeline-year">1372年</div>
+        <div class="timeline-event">嘉峪关关城修建</div>
+        <div class="timeline-desc">明朝洪武年间开始修建嘉峪关，历经150余年修建完工，成为明长城西端第一关，"天下第一雄关"由此得名。</div>
+        <div class="timeline-pattern">🏯 纹样世俗化：建筑彩绘纹样转向吉祥图案，简化趋势明显</div>
+      </div>
+      <div class="timeline-node">
+        <div class="timeline-icon">🏯</div>
+        <div class="timeline-dot gold"></div>
+      </div>
+      <div class="timeline-empty"></div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-empty"></div>
+      <div class="timeline-node">
+        <div class="timeline-icon">📜</div>
+        <div class="timeline-dot red"></div>
+      </div>
+      <div class="timeline-content">
+        <div class="timeline-year">1900年</div>
+        <div class="timeline-event">敦煌藏经洞被发现</div>
+        <div class="timeline-desc">道士王圆箓意外发现莫高窟17号窟，内藏5万余件文书、绢画等文物，震惊世界。敦煌学由此诞生，引发中国文化保护觉醒。</div>
+        <div class="timeline-pattern">📖 纹样觉醒期：敦煌纹样重新进入学术研究视野</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-content">
+        <div class="timeline-year">1987年</div>
+        <div class="timeline-event">莫高窟列入世界遗产</div>
+        <div class="timeline-desc">联合国教科文组织将莫高窟列入《世界遗产名录》，敦煌文化正式走向世界舞台，成为全人类共同的文化财富。</div>
+        <div class="timeline-pattern">🌍 国际传播期：敦煌纹样开始走向国际设计领域</div>
+      </div>
+      <div class="timeline-node">
+        <div class="timeline-icon">🌐</div>
+        <div class="timeline-dot teal"></div>
+      </div>
+      <div class="timeline-empty"></div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-empty"></div>
+      <div class="timeline-node">
+        <div class="timeline-icon">🚀</div>
+        <div class="timeline-dot teal"></div>
+      </div>
+      <div class="timeline-content">
+        <div class="timeline-year">2014年</div>
+        <div class="timeline-event">"一带一路"倡议提出</div>
+        <div class="timeline-desc">习近平主席提出共建"丝绸之路经济带"，古老的河西走廊焕发新生机，成为中西方文明交流互鉴的现代纽带。</div>
+        <div class="timeline-pattern">✨ 纹样新生期：敦煌纹样融入现代文创、数字艺术</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-content">
+        <div class="timeline-year">2020—2026年</div>
+        <div class="timeline-event">数字化保护与文创浪潮</div>
+        <div class="timeline-desc">敦煌研究院推出"数字敦煌"项目，累计完成290个洞窟数字化采集。敦煌纹样成为国潮设计核心元素，年产值突破百亿元。</div>
+        <div class="timeline-pattern">💻 数字传承期：AI修复、NFT数字藏品、沉浸式展览全面铺开</div>
+      </div>
+      <div class="timeline-node">
+        <div class="timeline-icon">💡</div>
+        <div class="timeline-dot teal"></div>
+      </div>
+      <div class="timeline-empty"></div>
+    </div>
+  </div>
+</section>
+
+<!-- HERITAGE GRID -->
+<section id="heritage-section">
+  <div class="section-header fade-in-up">
+    <div class="section-eyebrow">INTANGIBLE HERITAGE</div>
+    <h2 class="section-title">指尖触摸<em>千年技艺</em></h2>
+    <p class="section-desc">精选河西走廊代表性非物质文化遗产，感受传承的温度与重量</p>
+  </div>
+
+  <div class="heritage-grid">
+    <div class="heritage-card fade-in-up">
+      <div class="heritage-card-img" style="background:linear-gradient(135deg,#2C1B05,#4A2F0A);">
+        🥁
+        <div class="heritage-pattern-badge">莲花纹</div>
+        <div class="heritage-level national">国家级</div>
+      </div>
+      <div class="heritage-card-body">
+        <div class="heritage-city-badge">武威 · 凉州</div>
+        <div class="heritage-name">凉州贤孝</div>
+        <div class="heritage-desc">流传于武威一带的民间说唱艺术，演唱者多为盲人艺人，以三弦伴奏说唱劝善故事。</div>
+        <div class="heritage-pattern-link">传统服饰与道具中广泛使用莲花纹样</div>
+      </div>
+    </div>
+
+    <div class="heritage-card fade-in-up">
+      <div class="heritage-card-img" style="background:linear-gradient(135deg,#1A2C1A,#2A4A2A);">
+        🎭
+        <div class="heritage-pattern-badge">云纹</div>
+        <div class="heritage-level national">国家级</div>
+      </div>
+      <div class="heritage-card-body">
+        <div class="heritage-city-badge">张掖 · 甘州</div>
+        <div class="heritage-name">裕固族民歌</div>
+        <div class="heritage-desc">裕固族是河西走廊特有民族，其民歌保留了大量古突厥语词汇，记录着千年前游牧民族的迁徙史诗。</div>
+        <div class="heritage-pattern-link">裕固族服饰边缘饰以传统云纹与几何纹</div>
+      </div>
+    </div>
+
+    <div class="heritage-card fade-in-up">
+      <div class="heritage-card-img" style="background:linear-gradient(135deg,#2C1515,#4A2020);">
+        🏺
+        <div class="heritage-pattern-badge">几何纹</div>
+        <div class="heritage-level national">国家级</div>
+      </div>
+      <div class="heritage-card-body">
+        <div class="heritage-city-badge">酒泉 · 肃州</div>
+        <div class="heritage-name">夜光杯雕</div>
+        <div class="heritage-desc">以祁连山墨玉、白玉为原料，采用传统工艺精雕而成。"葡萄美酒夜光杯"之夜光杯即源于此。</div>
+        <div class="heritage-pattern-link">杯身多雕刻几何回纹与葡萄藤蔓纹样</div>
+      </div>
+    </div>
+
+    <div class="heritage-card fade-in-up">
+      <div class="heritage-card-img" style="background:linear-gradient(135deg,#1A1A2C,#252540);">
+        🎨
+        <div class="heritage-pattern-badge">忍冬纹/卷草纹</div>
+        <div class="heritage-level world">世界级</div>
+      </div>
+      <div class="heritage-card-body">
+        <div class="heritage-city-badge">敦煌 · 莫高窟</div>
+        <div class="heritage-name">敦煌壁画技艺</div>
+        <div class="heritage-desc">莫高窟壁画历经1600余年，面积达4.5万平方米，记录了佛教故事、丝路生活、天文历法等。</div>
+        <div class="heritage-pattern-link">忍冬纹、卷草纹是壁画边饰的核心母题</div>
+      </div>
+    </div>
+
+    <div class="heritage-card fade-in-up">
+      <div class="heritage-card-img" style="background:linear-gradient(135deg,#2C2310,#4A3D1A);">
+        🎵
+        <div class="heritage-pattern-badge">莲花纹</div>
+        <div class="heritage-level province">省级</div>
+      </div>
+      <div class="heritage-card-body">
+        <div class="heritage-city-badge">武威 · 天祝</div>
+        <div class="heritage-name">藏族民歌·南木特</div>
+        <div class="heritage-desc">天祝藏族自治县流传的大型藏戏，融合了中原戏曲与藏族音乐，是高原游牧文化与农耕文化交融的艺术结晶。</div>
+        <div class="heritage-pattern-link">藏戏面具与服饰大量运用莲花与卷草纹样</div>
+      </div>
+    </div>
+
+    <div class="heritage-card fade-in-up">
+      <div class="heritage-card-img" style="background:linear-gradient(135deg,#101A2C,#182840);">
+        🏯
+        <div class="heritage-pattern-badge">几何纹</div>
+        <div class="heritage-level national">国家级</div>
+      </div>
+      <div class="heritage-card-body">
+        <div class="heritage-city-badge">嘉峪关</div>
+        <div class="heritage-name">山丹烙画</div>
+        <div class="heritage-desc">以烙铁在木材、葫芦、纸张等材质上绘制图案，融合国画技法，题材多取自河西走廊风土人情。</div>
+        <div class="heritage-pattern-link">烙画边框常饰以几何回纹与如意纹样</div>
+      </div>
+    </div>
+
+    <!-- NEW CARDS -->
+    <div class="heritage-card fade-in-up">
+      <div class="heritage-card-img" style="background:linear-gradient(135deg,#2C1A0A,#4A3020);">
+        🧵
+        <div class="heritage-pattern-badge">忍冬纹/卷草纹</div>
+        <div class="heritage-level national">国家级</div>
+      </div>
+      <div class="heritage-card-body">
+        <div class="heritage-city-badge">敦煌 · 全省</div>
+        <div class="heritage-name">敦煌纹样非遗</div>
+        <div class="heritage-desc">以敦煌壁画纹样为核心的传统图案绘制技艺，包括忍冬纹、卷草纹、莲花纹等经典母题的传承与应用。</div>
+        <div class="heritage-pattern-link">本项目核心研究对象，纹样可视化主线索</div>
+      </div>
+    </div>
+
+    <div class="heritage-card fade-in-up">
+      <div class="heritage-card-img" style="background:linear-gradient(135deg,#1A1020,#301840);">
+        👘
+        <div class="heritage-pattern-badge">云纹/几何纹</div>
+        <div class="heritage-level province">省级</div>
+      </div>
+      <div class="heritage-card-body">
+        <div class="heritage-city-badge">河西走廊 · 全域</div>
+        <div class="heritage-name">河西传统服饰纹样</div>
+        <div class="heritage-desc">汇聚汉、藏、裕固、蒙古等多民族服饰纹样传统，云纹、几何纹、动植物纹等构成河西服饰独特的视觉语言。</div>
+        <div class="heritage-pattern-link">多民族纹样融合的活态样本库</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DUNHUANG HERITAGE DETAIL -->
+<section id="dunhuang-heritage-detail">
+  <div class="section-header fade-in-up">
+    <div class="section-eyebrow">DUNHUANG INTANGIBLE HERITAGE</div>
+    <h2 class="section-title">敦煌<em>非遗记忆</em></h2>
+    <p class="section-desc">敦煌不仅有举世闻名的莫高窟，更有一代代传承至今的非物质文化遗产，它们是丝路文明在当代的活态延续</p>
+  </div>
+
+  <div class="dh-container">
+    <!-- 1. 敦煌曲子戏 -->
+    <div class="dh-item fade-in-up">
+      <div class="dh-img">
+        <img src="images/敦煌曲子戏.jpg" alt="敦煌曲子戏" loading="lazy">
+      </div>
+      <div class="dh-content">
+        <div class="dh-num">01</div>
+        <div class="dh-name">敦煌曲子戏</div>
+        <div class="dh-tag">国家级非物质文化遗产</div>
+        <div class="dh-desc">
+          敦煌曲子戏是流传于敦煌地区的一种古老地方戏曲，距今已有两百余年历史。它源于民间小曲与说唱艺术，融合了秦腔、眉户等剧种的表演特色，形成了独具特色的"敦煌腔"。演出时以三弦、板胡、笛子为主要伴奏乐器，唱腔高亢悠扬，道白诙谐生动。
+        </div>
+        <div class="dh-highlight">
+          敦煌曲子戏保留了大量古丝绸之路沿线的民间音乐元素，是研究河西走廊民俗文化与戏曲演变的重要活态标本。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 敦煌彩塑制作技艺 -->
+    <div class="dh-item fade-in-up">
+      <div class="dh-img">
+        <img src="images/敦煌彩塑制作记忆.jpg" alt="敦煌彩塑制作技艺" loading="lazy">
+      </div>
+      <div class="dh-content">
+        <div class="dh-num">02</div>
+        <div class="dh-name">敦煌彩塑制作技艺</div>
+        <div class="dh-tag">国家级非物质文化遗产</div>
+        <div class="dh-desc">
+          敦煌彩塑制作技艺传承自莫高窟千年营造传统，以泥土、麻草、芨芨草为骨架原料，经塑型、压光、敷彩等数十道工序完成。传承人遵循"三分塑、七分绘"的古训，在石粉与矿物颜料的层层晕染中，赋予泥胎以生命的温度。一尊彩塑往往需要数月乃至数年的精心雕琢。
+        </div>
+        <div class="dh-highlight">
+          这项技艺完整保留了北朝至唐宋时期的传统造像工艺，是敦煌艺术"塑形传神"美学精神的直接延续。
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 敦煌剪纸 -->
+    <div class="dh-item fade-in-up">
+      <div class="dh-img">
+        <img src="images/敦煌剪纸.jpg" alt="敦煌剪纸" loading="lazy">
+      </div>
+      <div class="dh-content">
+        <div class="dh-num">03</div>
+        <div class="dh-name">敦煌剪纸</div>
+        <div class="dh-tag">甘肃省非物质文化遗产</div>
+        <div class="dh-desc">
+          敦煌剪纸汲取莫高窟壁画中的飞天、莲花、瑞兽等经典图像，以剪代笔、以纸为媒，将千年壁画艺术转化为民间剪纸语言。其构图饱满繁复，线条流畅飘逸，既有北方剪纸的粗犷大气，又具丝路艺术的华美精致。每逢节庆，敦煌人家贴窗花、挂吊钱，满室生辉。
+        </div>
+        <div class="dh-highlight">
+          敦煌剪纸将高深的石窟艺术"降维"为民间可触可感的装饰艺术，是敦煌美学走进寻常百姓家的生动载体。
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 敦煌民俗社火 -->
+    <div class="dh-item fade-in-up">
+      <div class="dh-img">
+        <img src="images/敦煌民俗社火.jpg" alt="敦煌民俗社火" loading="lazy">
+      </div>
+      <div class="dh-content">
+        <div class="dh-num">04</div>
+        <div class="dh-name">敦煌民俗社火</div>
+        <div class="dh-tag">敦煌市级非物质文化遗产</div>
+        <div class="dh-desc">
+          "社火"是敦煌地区春节及重大节日期间最热闹的民俗活动，融汇了高跷、旱船、舞龙、舞狮、秧歌等多种表演形式。社火队伍中，"春官"手持羽扇、身着彩袍，边走边说吉祥话；鼓手们敲起太平鼓，声震戈壁。整个敦煌城在社火的喧嚣中焕发出最质朴的生命力。
+        </div>
+        <div class="dh-highlight">
+          敦煌社火是农耕文明与游牧文化在节庆仪式中的深度融合，承载着当地百姓对风调雨顺、国泰民安的美好祈愿。
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. 敦煌木雕技艺 -->
+    <div class="dh-item fade-in-up">
+      <div class="dh-img">
+        <img src="images/敦煌木雕记忆.jpg" alt="敦煌木雕技艺" loading="lazy">
+      </div>
+      <div class="dh-content">
+        <div class="dh-num">05</div>
+        <div class="dh-name">敦煌木雕技艺</div>
+        <div class="dh-tag">酒泉市级非物质文化遗产</div>
+        <div class="dh-desc">
+          敦煌木雕以本地杨木、柳木为原料，题材多取自莫高窟壁画中的飞天、伎乐、供养人等形象。匠人以刀代笔，在木纹的起伏间雕琢出飘逸的衣袂与灵动的身姿。历经选材、开料、粗雕、细刻、打磨、上漆等工序，一块普通的木料便化作承载千年美学的艺术精品。
+        </div>
+        <div class="dh-highlight">
+          敦煌木雕将二维壁画转化为三维立体的雕塑语言，使静默千年的壁画形象获得了可触可握的实体生命。
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. 敦煌石粉彩绘技艺 -->
+    <div class="dh-item fade-in-up">
+      <div class="dh-img">
+        <img src="images/敦煌石粉彩绘记忆.jpg" alt="敦煌石粉彩绘技艺" loading="lazy">
+      </div>
+      <div class="dh-content">
+        <div class="dh-num">06</div>
+        <div class="dh-name">敦煌石粉彩绘技艺</div>
+        <div class="dh-tag">甘肃省非物质文化遗产</div>
+        <div class="dh-desc">
+          石粉彩绘是敦煌地区独特的传统绘画技艺，以当地特有的矿物石粉与植物颜料为原料，在特制地仗层上绘制壁画风格的图案。传承人严格按照古法制作地仗、调配颜料，层层敷彩、细细晕染，力求还原莫高窟壁画"历经千年而色不褪"的神奇效果。
+        </div>
+        <div class="dh-highlight">
+          这项技艺完整复原了古代敦煌画工"一画而愈千年"的材料配方与绘制技法，是敦煌壁画保护与研究的重要实践支撑。
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. 敦煌舞 -->
+    <div class="dh-item fade-in-up">
+      <div class="dh-img">
+        <img src="images/敦煌舞.jpg" alt="敦煌舞" loading="lazy">
+      </div>
+      <div class="dh-content">
+        <div class="dh-num">07</div>
+        <div class="dh-name">敦煌舞</div>
+        <div class="dh-tag">国家级舞蹈艺术品牌</div>
+        <div class="dh-desc">
+          敦煌舞源自莫高窟壁画中飞天、伎乐天的舞蹈姿态，由舞蹈家经多年研究创编而成。其典型特征"S"形曲线体态、反弹琵琶、三道弯舞姿，皆直接取自壁画形象。舞者在旋转与腾跃间，重现了千年前丝绸之路上歌舞升平的盛景，被誉为"活的敦煌壁画"。
+        </div>
+        <div class="dh-highlight">
+          从《丝路花雨》到《大梦敦煌》，敦煌舞已成为中国古典舞最具辨识度的流派之一，在世界舞台上绽放着丝路文明的璀璨光芒。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUMMARY SECTION -->
+<section id="summary-section">
+  <div class="summary-content fade-in-up">
+    <div class="summary-icon">🏛️</div>
+    <h2 class="summary-title">丝路文化 · 河西非遗 · <em>敦煌纹样</em></h2>
+    <p class="summary-text">
+      本项目以河西走廊为地理载体，以丝绸之路为历史脉络，以敦煌纹样为视觉核心，
+      构建了一座可交互、可探索、可感知的数字文化地图。<br><br>
+      从武威的凉州贤孝到敦煌的莫高壁画，从北朝忍冬纹到当代数字文创，
+      我们试图用数据与设计的语言，让千年丝路在屏幕上重新流动起来。
+    </p>
+    <div class="summary-pillars">
+      <div class="summary-pillar">
+        <div class="pillar-icon">🐫</div>
+        <div class="pillar-title">丝路文化</div>
+        <div class="pillar-desc">千年商道文明</div>
+      </div>
+      <div class="summary-pillar">
+        <div class="pillar-icon">🎭</div>
+        <div class="pillar-title">河西非遗</div>
+        <div class="pillar-desc">活态技艺传承</div>
+      </div>
+      <div class="summary-pillar">
+        <div class="pillar-icon">🌸</div>
+        <div class="pillar-title">敦煌纹样</div>
+        <div class="pillar-desc">数字新生设计</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">丝路遗韵</div>
+  <div class="footer-tagline">HEXI CORRIDOR · DIGITAL CULTURAL HERITAGE MAP</div>
+  <div class="footer-meta">
+    数据来源：国家文化和旅游部 · 甘肃省非遗保护中心 · 联合国教科文组织 · 敦煌研究院<br>
+    本作品仅供学术研究与课程展示使用 · 综合实践作品选题策划 · 计算机设计大赛 · 未来设计师 · 2026
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal-card" id="modal-card">
+    <div class="modal-header">
+      <div class="modal-city-tag" id="modal-tag">— 河西走廊 —</div>
+      <div class="modal-city-name" id="modal-name">城市</div>
+      <div class="modal-city-en" id="modal-en">City Name</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- BACKGROUND MUSIC -->
+<audio id="bgMusic" loop>
+  <source src="music/古装奇幻剧舞蹈配乐 - 快乐洋溢 - 敦煌飞天_爱给网_aigei_com.mp3" type="audio/mpeg">
+</audio>
+
+<button id="musicToggle" class="music-toggle" onclick="toggleMusic()" title="背景音乐">
+  <span id="musicIcon">&#127925;</span>
+  <span class="music-label">敦煌古韵</span>
+</button>
+
+<!-- BACK TO TOP -->
+<button id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到顶部">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
+
+<!-- PATTERN TIP POPUP -->
+<div class="pattern-tip" id="patternTip">
+  <span class="pattern-tip-close" onclick="hidePatternTip()">✕</span>
+  <div class="pattern-tip-title" id="tipTitle">💡 敦煌纹样小知识</div>
+  <div id="tipContent">忍冬纹因形似忍冬花藤蔓而得名，是敦煌壁画中最常见的边饰纹样之一，象征生命不息。</div>
+</div>
+
+<script>
+// ===== CITY DATA =====
+const cityData = {
+  wuwei: {
+    name:'武威', en:'Wuwei · Liangzhou', tag:'凉州 · 河西第一城', color:'#D4A84B', pattern:'莲花纹',
+    icon:'🪷',
+    story:'武威古称凉州，是河西走廊的东大门，"西出长安第一城"。这里曾是西汉设置的第一个边郡，更是北方丝绸之路上最繁华的商业重镇。1969年在武威出土的"马踏飞燕"（铜奔马），是中国旅游标志，被誉为"天马行空"。',
+    heritage:['凉州贤孝','藏族民歌·南木特','凉州武术','铜奔马铸造技艺','凉州宴乐'],
+    stats:[{num:'47',label:'非遗项目'},{num:'3',label:'国家级'},{num:'2000+',label:'年建城史'}],
+    ancient:{title:'汉唐凉州繁盛',desc:'丝绸之路重镇，中西商贸集散地，佛教艺术中心之一'},
+    modern:{title:'现代文旅融合',desc:'铜奔马IP文创年产值超5亿元，凉州词音乐节等品牌活动'},
+    audioNote:'凉州贤孝片段'
+  },
+  zhangye: {
+    name:'张掖', en:'Zhangye · Ganzhou', tag:'甘州 · 金张掖', color:'#1ABC9C', pattern:'云纹',
+    icon:'☁️',
+    story:'张掖古称甘州，"不望祁连山顶雪，错将张掖认江南"——这里有中国最美的七彩丹霞、草原湿地，还是裕固族的故乡。马可·波罗曾在此停留一年，留下了对"甘州之城"的惊叹描述。',
+    heritage:['裕固族民歌','裕固族服饰','张掖顶碗舞','山丹烙画','东乐砖雕'],
+    stats:[{num:'52',label:'非遗项目'},{num:'5',label:'国家级'},{num:'7',label:'裕固族文化'}],
+    ancient:{title:'甘州丝路明珠',desc:'裕固族东迁定居地，多民族文化交汇，丝路商贸中转站'},
+    modern:{title:'生态旅游高地',desc:'七彩丹霞年接待游客超300万人次，裕固族风情旅游品牌'},
+    audioNote:'裕固族民歌片段'
+  },
+  shandan: {
+    name:'山丹', en:'Shandan County', tag:'山丹军马场·古商道', color:'#D4A84B', pattern:'几何纹',
+    icon:'🏇',
+    story:'山丹地处河西走廊中部，拥有世界上最大的军马场——山丹军马场，历史上曾是汉唐国家军事战马基地，明代长城在此保存最为完好，留存有40余公里连续墙体。',
+    heritage:['山丹烙画','打麦场花儿','军马场马术','山丹刺绣'],
+    stats:[{num:'18',label:'非遗项目'},{num:'42',label:'公里长城'},{num:'3000+',label:'年牧马史'}],
+    ancient:{title:'汉唐军马基地',desc:'皇家牧场，丝路商道重要驿站，军事与商贸并重'},
+    modern:{title:'文旅融合示范',desc:'军马场生态旅游，长城遗址公园建设，非遗活态展示'},
+    audioNote:'花儿民歌片段'
+  },
+  jiuquan: {
+    name:'酒泉', en:'Jiuquan · Suzhou', tag:'肃州 · 夜光杯之乡', color:'#9B59B6', pattern:'几何纹',
+    icon:'🍷',
+    story:'酒泉因"城下有泉，其水若酒"而得名，霍去病以美酒犒劳将士的故事流传千年。这里是中国航天城的所在地，嫦娥飞天从这里起航，让古老的"飞天梦"有了现代注脚。',
+    heritage:['夜光杯雕','酒泉夜光杯制作技艺','肃北蒙古族民歌','阿克塞哈萨克族民俗'],
+    stats:[{num:'61',label:'非遗项目'},{num:'4',label:'国家级'},{num:'2000+',label:'年夜光杯史'}],
+    ancient:{title:'肃州丝路要冲',desc:'河西四郡之一，夜光杯产地，多民族聚居文化熔炉'},
+    modern:{title:'航天文旅新城',desc:'航天城旅游+夜光杯文创+哈萨克风情园三位一体'},
+    audioNote:'蒙古族长调片段'
+  },
+  jiayuguan: {
+    name:'嘉峪关', en:'Jiayuguan · First Pass', tag:'天下第一雄关', color:'#E74C3C', pattern:'几何纹',
+    icon:'🏯',
+    story:'嘉峪关是明长城最西端的关隘，素称"天下第一雄关"。关城东西两翼展开，烽火台绵延，是古代中原与西域的分界线。"西出阳关无故人"——这里是无数诗人笔下的离愁与壮志之地。',
+    heritage:['嘉峪关彩绘砖壁画','折纸剪纸艺术','关城武术','驼铃民俗'],
+    stats:[{num:'14',label:'非遗项目'},{num:'1',label:'UNESCO遗产'},{num:'650+',label:'年关城历史'}],
+    ancient:{title:'明长城西端',desc:'军事防御体系核心，丝绸之路最后的中原门户'},
+    modern:{title:'世界遗产文旅',desc:'年接待游客超200万，沉浸式夜游长城项目上线'},
+    audioNote:'驼铃声声'
+  },
+  dunhuang: {
+    name:'敦煌', en:'Dunhuang · World Heritage', tag:'莫高窟 · 鸣沙山 · 月牙泉', color:'#E74C3C', pattern:'忍冬纹/卷草纹',
+    icon:'🎨',
+    story:'敦煌是丝绸之路上最耀眼的明珠，莫高窟45000平方米壁画、2400余身彩塑，历经1600余年，记录了东西方文明的对话。1900年藏经洞的发现，震撼了全世界，"敦煌学"由此成为国际显学。',
+    heritage:['敦煌壁画技艺','敦煌彩塑','敦煌曲子戏','敦煌飞天舞蹈','彩绘砖雕'],
+    stats:[{num:'64',label:'非遗项目'},{num:'735',label:'个窟龛'},{num:'45000',label:'㎡壁画'}],
+    ancient:{title:'丝路文明交汇',desc:'四大文明交汇点，佛教艺术圣地，藏经洞震惊世界'},
+    modern:{title:'数字敦煌标杆',desc:'290个洞窟数字化，文创年产值破百亿，全球巡展'},
+    audioNote:'敦煌古乐片段'
+  },
+  yumenguan: {
+    name:'玉门关', en:'Yumen Pass', tag:'丝路西端第一关', color:'#D4A84B', pattern:'几何纹',
+    icon:'🚪',
+    story:'玉门关是汉代丝绸之路上的重要关隘，西汉时期设置，因西域输入玉石经由此关而得名。"春风不度玉门关"——王之涣的《凉州词》让这座关隘成为千古绝唱，今已成为国家级遗址公园。',
+    heritage:['汉代烽火台遗址','玉石雕刻技艺','边塞诗词传唱'],
+    stats:[{num:'2100+',label:'年建关史'},{num:'3',label:'处遗址群'},{num:'8',label:'公里长城遗址'}],
+    ancient:{title:'汉代丝路关隘',desc:'玉石输入通道，军事要塞，边塞诗词发源地'},
+    modern:{title:'遗址公园保护',desc:'国家级遗址公园，戈壁星空营地，研学旅游基地'},
+    audioNote:'边塞诗词吟诵'
+  }
+};
+
+// ===== MODAL =====
+function openCity(id) {
+  const d = cityData[id]; if(!d) return;
+  document.getElementById('modal-tag').textContent = d.tag;
+  document.getElementById('modal-name').textContent = d.name;
+  document.getElementById('modal-en').textContent = d.en;
+
+  const body = document.getElementById('modal-body');
+  body.innerHTML = `
+    <div class="modal-pattern-icon">${d.icon}</div>
+    <div class="modal-story">${d.story}</div>
+    <div class="modal-section-title">代表性纹样</div>
+    <div class="intangible-tags"><span class="intangible-tag" style="border-color:${d.color};color:${d.color};">${d.pattern}</span></div>
+    <div class="modal-section-title">代表性非遗项目</div>
+    <div class="intangible-tags">${d.heritage.map(h=>`<span class="intangible-tag">${h}</span>`).join('')}</div>
+    <div class="modal-section-title">关键数据</div>
+    <div class="modal-stat-grid">${d.stats.map(s=>`<div class="modal-stat"><div class="modal-stat-num" style="color:${d.color}">${s.num}</div><div class="modal-stat-label">${s.label}</div></div>`).join('')}</div>
+    <div class="modal-section-title">古今对比</div>
+    <div class="modal-compare">
+      <div class="compare-card ancient">
+        <div class="compare-era">古</div>
+        <div class="compare-title">${d.ancient.title}</div>
+        <div class="compare-desc">${d.ancient.desc}</div>
+      </div>
+      <div class="compare-card modern">
+        <div class="compare-era mod">今</div>
+        <div class="compare-title">${d.modern.title}</div>
+        <div class="compare-desc">${d.modern.desc}</div>
+      </div>
+    </div>
+    <div class="audio-toggle" onclick="toggleAudio(this)">
+      <span>▶</span> <span>播放 ${d.audioNote}（模拟音频彩蛋）</span>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('active'); }
+function closeModalOutside(e) { if(e.target===document.getElementById('modal')) closeModal(); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+
+function toggleAudio(el) {
+  el.classList.toggle('playing');
+  const span = el.querySelector('span:last-child');
+  span.textContent = el.classList.contains('playing') ? '正在播放...（模拟音频）' : span.textContent.replace('正在播放...（模拟音频）','播放');
+  if(el.classList.contains('playing')) {
+    setTimeout(()=>{ el.classList.remove('playing'); span.textContent = span.textContent.replace('正在播放...（模拟音频）','播放'); }, 3000);
+  }
+}
+
+// ===== PARTICLES =====
+(function(){
+  const canvas=document.getElementById('particles');
+  const ctx=canvas.getContext('2d');
+  let stars=[];
+  function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+  resize(); window.addEventListener('resize',resize);
+  for(let i=0;i<180;i++){
+    stars.push({x:Math.random(),y:Math.random()*0.75,r:Math.random()*1.3+0.2,o:Math.random()*0.55+0.1,speed:Math.random()*0.0003+0.0001,phase:Math.random()*Math.PI*2});
+  }
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    t+=0.016;
+    stars.forEach(s=>{
+      const opacity=s.o*(0.55+0.45*Math.sin(t*s.speed*150+s.phase));
+      ctx.beginPath(); ctx.arc(s.x*canvas.width,s.y*canvas.height,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(240,200,102,${opacity})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ===== SCROLL ANIMATIONS =====
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.1});
+document.querySelectorAll('.fade-in-up,.timeline-item').forEach(el=>observer.observe(el));
+
+// Navbar + backTop
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>60);
+  document.getElementById('backTop').classList.toggle('visible',window.scrollY>500);
+});
+
+// ===== COUNTER =====
+function animateCounter(el){
+  const target=parseInt(el.dataset.target);
+  const duration=2000; const start=performance.now();
+  function update(now){
+    const elapsed=now-start; const progress=Math.min(elapsed/duration,1);
+    const eased=1-Math.pow(1-progress,3);
+    el.textContent=Math.floor(eased*target).toLocaleString();
+    if(progress<1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+const heroObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ document.querySelectorAll('[data-target]').forEach(animateCounter); heroObs.disconnect(); } });
+},{threshold:0.3});
+heroObs.observe(document.getElementById('hero'));
+
+// ===== CHARTS =====
+const GOLD='#D4A84B', GOLD2='#F0C866', RED='#E74C3C', TEAL='#1ABC9C', MUTED='rgba(155,130,64,0.5)';
+const chartFont={family:'serif',size:11};
+const chartFontSM={family:'serif',size:10};
+
+new Chart(document.getElementById('heritageChart'),{
+  type:'line',
+  data:{
+    labels:['2006','2008','2010','2012','2014','2016','2018','2020','2022','2023'],
+    datasets:[{
+      label:'国家级非遗', data:[12,18,28,38,52,68,89,112,138,148],
+      borderColor:GOLD, backgroundColor:'rgba(212,168,75,0.08)', borderWidth:2.5,
+      pointBackgroundColor:GOLD2, pointRadius:4, tension:0.4, fill:true
+    },{
+      label:'省级非遗', data:[45,68,95,126,158,186,210,228,242,248],
+      borderColor:TEAL, backgroundColor:'rgba(26,188,156,0.06)', borderWidth:2,
+      pointBackgroundColor:TEAL, pointRadius:3, tension:0.4, fill:true
+    }]
+  },
+  options:{ responsive:true, plugins:{ legend:{labels:{color:'#9B8240',font:chartFont,boxWidth:12}} },
+    scales:{ x:{ticks:{color:'#9B8240',font:chartFont},grid:{color:'rgba(212,168,75,0.06)'}},
+            y:{ticks:{color:'#9B8240',font:chartFont},grid:{color:'rgba(212,168,75,0.08)'}} }
+  }
+});
+
+new Chart(document.getElementById('cityChart'),{
+  type:'bar',
+  data:{
+    labels:['武威','张掖','酒泉','敦煌','嘉峪关','金昌'],
+    datasets:[{
+      label:'非遗项目数', data:[47,52,61,64,14,20],
+      backgroundColor:['rgba(212,168,75,0.75)','rgba(26,188,156,0.75)','rgba(155,89,182,0.75)','rgba(231,76,60,0.75)','rgba(52,152,219,0.75)','rgba(241,196,15,0.75)'],
+      borderColor:['rgba(212,168,75,1)','rgba(26,188,156,1)','rgba(155,89,182,1)','rgba(231,76,60,1)','rgba(52,152,219,1)','rgba(241,196,15,1)'],
+      borderWidth:1.5, borderRadius:2
+    }]
+  },
+  options:{ responsive:true, plugins:{ legend:{display:false} },
+    scales:{ x:{ticks:{color:'#9B8240',font:chartFont},grid:{display:false}},
+            y:{ticks:{color:'#9B8240',font:chartFont},grid:{color:'rgba(212,168,75,0.08)'}} }
+  }
+});
+
+new Chart(document.getElementById('tradeChart'),{
+  type:'line',
+  data:{
+    labels:['西汉','东汉','魏晋','南北朝','隋','初唐','盛唐','中唐','晚唐','宋','元','明','清'],
+    datasets:[{
+      label:'贸易活跃指数', data:[60,45,30,25,55,75,100,85,60,40,70,35,25],
+      borderColor:GOLD, backgroundColor:(ctx)=>{
+        const chart=ctx.chart; const {ctx:c,chartArea}=chart;
+        if(!chartArea) return 'transparent';
+        const gradient=c.createLinearGradient(0,chartArea.top,0,chartArea.bottom);
+        gradient.addColorStop(0,'rgba(212,168,75,0.35)'); gradient.addColorStop(1,'rgba(212,168,75,0.02)');
+        return gradient;
+      }, borderWidth:2.5, pointBackgroundColor:GOLD2, pointRadius:4, tension:0.45, fill:true
+    }]
+  },
+  options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` 活跃指数：${ctx.raw}`}} },
+    scales:{ x:{ticks:{color:'#9B8240',font:chartFontSM},grid:{color:'rgba(212,168,75,0.05)'}},
+            y:{ticks:{color:'#9B8240',font:chartFontSM},grid:{color:'rgba(212,168,75,0.08)'},max:110} }
+  }
+});
+
+new Chart(document.getElementById('categoryChart'),{
+  type:'doughnut',
+  data:{
+    labels:['民间音乐','传统舞蹈','传统戏剧','民间文学','传统技艺','民俗','传统美术'],
+    datasets:[{
+      data:[22,15,12,18,28,16,13],
+      backgroundColor:['rgba(212,168,75,0.85)','rgba(26,188,156,0.85)','rgba(155,89,182,0.85)','rgba(231,76,60,0.85)','rgba(52,152,219,0.85)','rgba(241,196,15,0.85)','rgba(230,126,34,0.85)'],
+      borderColor:'rgba(13,10,4,0.5)', borderWidth:2, hoverOffset:6
+    }]
+  },
+  options:{ responsive:true, cutout:'62%',
+    plugins:{ legend:{position:'right',labels:{color:'#9B8240',font:{size:10},boxWidth:10,padding:8}} }
+  }
+});
+
+new Chart(document.getElementById('ageChart'),{
+  type:'bar',
+  data:{
+    labels:['20-30岁','31-40岁','41-50岁','51-60岁','61-70岁','70岁以上'],
+    datasets:[{
+      label:'传承人占比(%)', data:[3,7,15,28,31,16],
+      backgroundColor:(ctx)=>{
+        const colors=['rgba(26,188,156,0.8)','rgba(26,188,156,0.7)','rgba(241,196,15,0.75)','rgba(230,126,34,0.8)','rgba(231,76,60,0.75)','rgba(192,57,43,0.85)'];
+        return colors[ctx.dataIndex];
+      }, borderRadius:2, borderSkipped:false
+    }]
+  },
+  options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw}% 传承人`}} },
+    scales:{ x:{ticks:{color:'#9B8240',font:chartFontSM},grid:{display:false}},
+            y:{ticks:{color:'#9B8240',font:chartFontSM,callback:v=>v+'%'},grid:{color:'rgba(212,168,75,0.08)'}} }
+  }
+});
+
+// ===== BACKGROUND MUSIC =====
+const bgMusic = document.getElementById('bgMusic');
+const musicToggle = document.getElementById('musicToggle');
+const musicIcon = document.getElementById('musicIcon');
+let musicStarted = false;
+
+function toggleMusic() {
+  if (!bgMusic.querySelector('source') || bgMusic.currentSrc === '' || bgMusic.currentSrc === window.location.href) {
+    alert('请先将您的敦煌风格音乐文件放入 music/dunhuang.mp3，再刷新页面体验背景音乐');
+    return;
+  }
+  if (bgMusic.paused) {
+    bgMusic.volume = 0.4;
+    bgMusic.play().then(() => {
+      musicToggle.classList.add('playing');
+      musicIcon.innerHTML = '&#127926;';
+      const label = musicToggle.querySelector('.music-label');
+      if(label) label.textContent = '暂停音乐';
+    }).catch(() => {
+      alert('音乐播放失败，请检查 music/dunhuang.mp3 是否存在');
+    });
+  } else {
+    bgMusic.pause();
+    musicToggle.classList.remove('playing');
+    musicIcon.innerHTML = '&#127925;';
+    const label = musicToggle.querySelector('.music-label');
+    if(label) label.textContent = '敦煌古韵';
+  }
+}
+
+// Try autoplay on first user interaction
+document.addEventListener('click', function initMusic() {
+  if (!musicStarted && bgMusic.querySelector('source') && bgMusic.currentSrc !== '' && bgMusic.currentSrc !== window.location.href) {
+    bgMusic.volume = 0.3;
+    bgMusic.play().then(() => {
+      musicToggle.classList.add('playing');
+      musicIcon.innerHTML = '&#127926;';
+      musicStarted = true;
+    }).catch(() => {});
+  }
+  document.removeEventListener('click', initMusic);
+}, { once: true });
+
+// ===== PATTERN TIPS =====
+const tips=[
+  {title:'💡 忍冬纹小知识',content:'忍冬纹因形似忍冬花藤蔓而得名，S形连续构图象征生命不息，是敦煌壁画边饰中最经典的纹样母题。'},
+  {title:'💡 卷草纹小知识',content:'卷草纹在唐代取代忍冬纹成为主流，枝叶更加丰满繁复，体现了盛唐气象与中外文化交融的审美。'},
+  {title:'💡 莲花纹小知识',content:'莲花纹随佛教从印度传入中国，在敦煌壁画中既代表佛教圣洁，也融入了本土"出淤泥而不染"的文化寓意。'},
+  {title:'💡 云纹小知识',content:'中国传统云纹有如意云、流云等多种样式，在河西走廊各民族服饰与器物中广泛使用，象征祥瑞高升。'},
+  {title:'💡 几何回纹小知识',content:'回纹是中国最古老的几何纹样之一，"回"字循环不断，寓意吉祥连绵，常见于织物、建筑彩绘与器物装饰。'}
+];
+
+let tipIdx=0;
+function showPatternTip(){
+  const tip=tips[tipIdx];
+  document.getElementById('tipTitle').textContent=tip.title;
+  document.getElementById('tipContent').textContent=tip.content;
+  document.getElementById('patternTip').classList.add('visible');
+  tipIdx=(tipIdx+1)%tips.length;
+}
+function hidePatternTip(){ document.getElementById('patternTip').classList.remove('visible'); }
+
+// Show tips randomly while scrolling
+let lastTipTime=0;
+window.addEventListener('scroll',()=>{
+  const now=Date.now();
+  if(now-lastTipTime>20000 && Math.random()>0.97 && window.scrollY>800){
+    showPatternTip(); lastTipTime=now;
+    setTimeout(hidePatternTip,8000);
+  }
+});
+
+// Show first tip after 8 seconds
+setTimeout(()=>{ if(window.scrollY>300) { showPatternTip(); setTimeout(hidePatternTip,8000); } },8000);
+</script>
+</body>
+</html>
