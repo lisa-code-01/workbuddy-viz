@@ -94,7 +94,7 @@
   }
   .hero-bg-img {
     position:absolute; inset:0; z-index:0;
-    background:url('images/Dunhuang_Silk_Road_panoramic_s_2026-05-18T09-14-24.png') center/cover no-repeat;
+    background:url('Dunhuang_Silk_Road_panoramic_s_2026-05-18T09-14-24.png') center/cover no-repeat;
     filter:brightness(0.55) saturate(1.1);
   }
   .hero-overlay {
@@ -1350,7 +1350,7 @@
     <!-- 1. 敦煌曲子戏 -->
     <div class="dh-item fade-in-up">
       <div class="dh-img">
-        <img src="images/敦煌曲子戏.jpg" alt="敦煌曲子戏" loading="lazy">
+        <img src="敦煌曲子戏.jpg" alt="敦煌曲子戏" loading="lazy">
       </div>
       <div class="dh-content">
         <div class="dh-num">01</div>
@@ -1368,7 +1368,7 @@
     <!-- 2. 敦煌彩塑制作技艺 -->
     <div class="dh-item fade-in-up">
       <div class="dh-img">
-        <img src="images/敦煌彩塑制作记忆.jpg" alt="敦煌彩塑制作技艺" loading="lazy">
+        <img src="敦煌彩塑制作记忆.jpg" alt="敦煌彩塑制作技艺" loading="lazy">
       </div>
       <div class="dh-content">
         <div class="dh-num">02</div>
@@ -1386,7 +1386,7 @@
     <!-- 3. 敦煌剪纸 -->
     <div class="dh-item fade-in-up">
       <div class="dh-img">
-        <img src="images/敦煌剪纸.jpg" alt="敦煌剪纸" loading="lazy">
+        <img src="敦煌剪纸.jpg" alt="敦煌剪纸" loading="lazy">
       </div>
       <div class="dh-content">
         <div class="dh-num">03</div>
@@ -1404,7 +1404,7 @@
     <!-- 4. 敦煌民俗社火 -->
     <div class="dh-item fade-in-up">
       <div class="dh-img">
-        <img src="images/敦煌民俗社火.jpg" alt="敦煌民俗社火" loading="lazy">
+        <img src="敦煌民俗社火.jpg" alt="敦煌民俗社火" loading="lazy">
       </div>
       <div class="dh-content">
         <div class="dh-num">04</div>
@@ -1422,7 +1422,7 @@
     <!-- 5. 敦煌木雕技艺 -->
     <div class="dh-item fade-in-up">
       <div class="dh-img">
-        <img src="images/敦煌木雕记忆.jpg" alt="敦煌木雕技艺" loading="lazy">
+        <img src="敦煌木雕记忆.jpg" alt="敦煌木雕技艺" loading="lazy">
       </div>
       <div class="dh-content">
         <div class="dh-num">05</div>
@@ -1440,7 +1440,7 @@
     <!-- 6. 敦煌石粉彩绘技艺 -->
     <div class="dh-item fade-in-up">
       <div class="dh-img">
-        <img src="images/敦煌石粉彩绘记忆.jpg" alt="敦煌石粉彩绘技艺" loading="lazy">
+        <img src="敦煌石粉彩绘记忆.jpg" alt="敦煌石粉彩绘技艺" loading="lazy">
       </div>
       <div class="dh-content">
         <div class="dh-num">06</div>
@@ -1458,7 +1458,7 @@
     <!-- 7. 敦煌舞 -->
     <div class="dh-item fade-in-up">
       <div class="dh-img">
-        <img src="images/敦煌舞.jpg" alt="敦煌舞" loading="lazy">
+        <img src="敦煌舞.jpg" alt="敦煌舞" loading="lazy">
       </div>
       <div class="dh-content">
         <div class="dh-num">07</div>
@@ -1531,7 +1531,7 @@
 
 <!-- BACKGROUND MUSIC -->
 <audio id="bgMusic" loop>
-  <source src="music/古装奇幻剧舞蹈配乐 - 快乐洋溢 - 敦煌飞天_爱给网_aigei_com.mp3" type="audio/mpeg">
+  <source src="古装奇幻剧舞蹈配乐 - 快乐洋溢 - 敦煌飞天_爱给网_aigei_com.mp3" type="audio/mpeg">
 </audio>
 
 <button id="musicToggle" class="music-toggle" onclick="toggleMusic()" title="背景音乐">
@@ -1835,7 +1835,7 @@ let musicStarted = false;
 
 function toggleMusic() {
   if (!bgMusic.querySelector('source') || bgMusic.currentSrc === '' || bgMusic.currentSrc === window.location.href) {
-    alert('请先将您的敦煌风格音乐文件放入 music/dunhuang.mp3，再刷新页面体验背景音乐');
+    alert('请先将您的敦煌风格音乐文件放入 dunhuang.mp3，再刷新页面体验背景音乐');
     return;
   }
   if (bgMusic.paused) {
@@ -1846,7 +1846,7 @@ function toggleMusic() {
       const label = musicToggle.querySelector('.music-label');
       if(label) label.textContent = '暂停音乐';
     }).catch(() => {
-      alert('音乐播放失败，请检查 music/dunhuang.mp3 是否存在');
+      alert('音乐播放失败，请检查 dunhuang.mp3 是否存在');
     });
   } else {
     bgMusic.pause();
